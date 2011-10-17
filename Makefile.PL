@@ -10,6 +10,7 @@ build_requires 'Test::More';
 requires 'Any::Moose'=>'0.14';
 requires 'LWP::Simple';
 requires 'XML::Simple';
+requires 'JSON::Any';
 requires 'Hash::AsObject';
 
 auto_install;
