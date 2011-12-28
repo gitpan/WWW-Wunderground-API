@@ -2,12 +2,12 @@ NAME
     WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
 
 VERSION
-    Version 0.02
+    Version 0.03
 
 SYNOPSIS
-    Connects to the Weather Underground XML weather conditions URL and
-    parses the data into something usable. The entire response is available
-    in Hash::AsObject form, so any data that comes from the server is
+    Connects to the Weather Underground JSON/XML service and parses the data
+    into something usable. The entire response is available in
+    Hash::AsObject form, so any data that comes from the server is
     accessible. Print a Data::Dumper of ->data to see all of the tasty data
     bits.
 
@@ -53,8 +53,8 @@ SYNOPSIS
     Returns raw json result from wunderground server where applicable
 
   data()
-    Contains xml result from server parsed into convenient Hash::AsObject
-    form;
+    Contains all weather data from server parsed into convenient
+    Hash::AsObject form;
 
   api_key()
     Required for JSON api access.

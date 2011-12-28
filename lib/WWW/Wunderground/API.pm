@@ -13,11 +13,11 @@ WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 has api_key => (is=>'ro', isa=>'Str');
 has api_type => (is=>'rw', default=>sub {$_[0]->api_key ? 'json' : 'xml'});
@@ -68,12 +68,12 @@ sub AUTOLOAD {
   }
 }
 
-no Any::Moose;
+#no Any::Moose;
 
 
 =head1 SYNOPSIS
 
-Connects to the Weather Underground XML weather conditions URL and parses the data
+Connects to the Weather Underground JSON/XML service and parses the data
 into something usable. The entire response is available in Hash::AsObject form, so
 any data that comes from the server is accessible. Print a Data::Dumper of ->data
 to see all of the tasty data bits.
@@ -125,7 +125,7 @@ Returns raw json result from wunderground server where applicable
 
 =head2 data()
 
-Contains xml result from server parsed into convenient Hash::AsObject form;
+Contains all weather data from server parsed into convenient Hash::AsObject form;
 
 =head2 api_key()
 
