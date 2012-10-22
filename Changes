@@ -1,5 +1,9 @@
 Revision history for WWW-Wunderground-API
 
+0.04
+        2012-10-22
+        Remove buggy Module::Install v1.04 
+
 0.03
         2011-12-28
         Documentation patches

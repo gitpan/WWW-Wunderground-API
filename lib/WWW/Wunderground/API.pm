@@ -13,11 +13,11 @@ WWW::Wunderground::API - Use Weather Underground's XML or JSON interface
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 has api_key => (is=>'ro', isa=>'Str');
 has api_type => (is=>'rw', default=>sub {$_[0]->api_key ? 'json' : 'xml'});
