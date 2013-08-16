@@ -7,11 +7,12 @@ license  'perl';
 
 build_requires 'Test::More';
 
-requires 'Any::Moose'=>'0.14';
+requires 'Moo'=>'1.0';
 requires 'LWP::Simple';
 requires 'XML::Simple';
 requires 'JSON::Any';
 requires 'Hash::AsObject';
+recommends 'Cache::FileCache'=> 0;
 
 auto_install;
 

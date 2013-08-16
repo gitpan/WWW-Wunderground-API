@@ -1,5 +1,13 @@
 Revision history for WWW-Wunderground-API
 
+0.05
+        2013-08-14
+        Lots of changes. Hopefully none breaking, but with waaay more features.
+        Proper forecast support
+        Caching support
+        Move from Any::Moose to Moo
+        And much much more!
+
 0.04
         2012-10-22
         Remove buggy Module::Install v1.04 

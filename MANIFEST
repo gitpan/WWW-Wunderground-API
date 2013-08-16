@@ -1,5 +1,4 @@
 Changes
-ignore.txt
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -15,7 +14,7 @@ lib/WWW/Wunderground/API.pm
 Makefile.PL
 MANIFEST
 META.yml
-README
+README.pod
 t/00-load.t
 t/01-getweather.t
 t/boilerplate.t

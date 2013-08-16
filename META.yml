@@ -1,5 +1,5 @@
 ---
-abstract: "Use Weather Underground's XML or JSON interface"
+abstract: "Use Weather Underground's JSON/XML API"
 author:
   - 'John Lifsey, C<< <nebulous at crashed.net> >>'
   - 'John Lifsey <nebulous@crashed.net>'
@@ -20,13 +20,15 @@ no_index:
   directory:
     - inc
     - t
+recommends:
+  Cache::FileCache: 0
 requires:
-  Any::Moose: 0.14
   Hash::AsObject: 0
   JSON::Any: 0
   LWP::Simple: 0
+  Moo: 1.0
   XML::Simple: 0
   perl: 5.6.0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.04
+version: 0.05
