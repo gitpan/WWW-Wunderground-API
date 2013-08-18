@@ -30,5 +30,7 @@ requires:
   XML::Simple: 0
   perl: 5.6.0
 resources:
+  homepage: https://github.com/nebulous/WWW-Wunderground-API
   license: http://dev.perl.org/licenses/
-version: 0.05
+  repository: https://github.com/nebulous/WWW-Wunderground-API.git
+version: 0.06

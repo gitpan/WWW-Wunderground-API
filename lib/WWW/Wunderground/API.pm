@@ -13,18 +13,18 @@ WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 has location => (is=>'rw', required=>1);
 has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API} });
 has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xml' });
 has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
-has auto_api => (is=>'ro', default=>0 );
-has raw => (is=>'rw', default=>'');
+has auto_api => (is=>'ro', default=> sub {0} );
+has raw => (is=>'rw', default=>sub{''});
 has data => (is=>'rw', lazy=>1, default=>sub{ Hash::AsObject->new } );
 
 sub json {
@@ -200,6 +200,9 @@ to see all of the tasty data bits.
     print "Chance of rain three hours from now:".$wun->hourly->[3]{pop}."%\n";
     print "Nearest airport:".$wun->geolookup->nearby_weather_stations->airport->{station}[0]{icao}."\n";
 
+    #Conditions is autoloaded into the root of the object
+    print "Temp_f:".$wun->temp_f."\n";
+
 =head1 METHODS/ACCESSORS
 
 =head2 update()
@@ -233,12 +236,12 @@ set auto_api to something truthy to have the module automatically make API calls
 
 Set api_name to any location-based wunderground api call (almanac,conditions,forecast,history...).
 
-Location is optional and defaults to </"location()">). Can be any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
+Location is optional and defaults to L</"location()">. Can be any valid location (eg 22152,'KIAD','q/CA/SanFrancisco',...)
 
     #Almanac data for 90210
     $wun->api_call('almanac','90210');
 
-    #If L</"auto_api"> is set the following is equivalent
+    #If auto_api=>1 the following is equivalent
     $wun->location(90120);
     $wun->almanac;
 
@@ -251,6 +254,10 @@ Location is optional and defaults to </"location()">). Can be any valid location
 
 Returns raw text result from the most recent API call. This will be either xml or json depending on api_type.
 You can also set this to whatever json/xml you'd like, though I can't imagine why you'd want to.
+
+=head2 cache()
+
+Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CLI> caches should work.
 
 =head2 xml()
 
