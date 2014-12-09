@@ -2,9 +2,10 @@ package WWW::Wunderground::API;
 
 use 5.006;
 use Moo;
+use URI;
+use JSON::Any;
 use LWP::Simple;
 use XML::Simple;
-use JSON::Any;
 use Hash::AsObject;
 
 =head1 NAME
@@ -13,14 +14,14 @@ WWW::Wunderground::API - Use Weather Underground's JSON/XML API
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 has location => (is=>'rw', required=>1);
-has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API} });
+has api_key => (is=>'ro', default=>sub { $ENV{WUNDERGROUND_API}||$ENV{WUNDERGROUND_KEY} });
 has api_type => (is=>'rw', lazy=>1, default=>sub { $_[0]->api_key ? 'json' : 'xml' });
 has cache => (is=>'ro', lazy=>1, default=>sub { new WWW::Wunderground::API::BadCache });
 has auto_api => (is=>'ro', default=> sub {0} );
@@ -41,7 +42,7 @@ sub xml {
 sub update {
   my $self = shift;
   if ($self->api_key) {
-    $self->api_call('conditions'); 
+    $self->api_call('conditions');
   } else {
     my $legacy_url = 'http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml?query='.$self->location;
     my $xml;
@@ -57,47 +58,75 @@ sub update {
 }
 
 sub _guess_key {
-	my $self = shift;
-	my ($struc,$action) = @_;
+  my $self = shift;
+  my ($struc,$action) = @_;
 
-	#try to guess result structure key
-	return $action if defined($struc->{$action});
-	foreach my $key (keys %$struc) {
-		next if $key=~ /(response|features|version|termsofservice)/i;
-		return $key;
-	}
+  #try to guess result structure key
+  return $action if defined($struc->{$action});
+  foreach my $key (keys %$struc) {
+    next if $key=~ /(response|features|version|termsofservice)/i;
+    return $key;
+  }
 }
 
 sub api_call {
-	my $self = shift;
-	my ($action, $location) = @_;
-	$location||=$self->location;
-	if ($self->api_key) {
-		my $base = 'http://api.wunderground.com/api';
-		my $url = join('/', $base,$self->api_key,$action,'q',$location).'.'.$self->api_type;
+  my $self = shift;
+  my $action = shift;
+
+  my %params;
+
+  if (scalar(@_) == 1) {
+    if (ref($_[0])) {
+      (%params) = %{$_[0]};
+    } else {
+      $params{location} = $_[0];
+    }
+  } elsif (scalar(@_) > 1) {
+    (%params) = @_;
+  }
+  my $location = delete $params{location} || $self->location;
+  my $format = delete $params{format}
+    || ($action=~/(radar|satellite)/
+      ? 'gif'
+      : $self->api_type);
+
+  if ($self->api_key) {
+    my $base = 'http://api.wunderground.com/api';
+    my $url = URI->new(join('/', $base,$self->api_key,$action,'q',$location).".$format");
+    $url->query_form(%params);
 
     my $result;
-    unless ($result = $self->cache->get($url)) {
-      $result = get($url);
-      $self->cache->set($url,$result);
+    my $url_string = $url->as_string();
+    unless ($result = $self->cache->get($url_string)) {
+      $result = get($url_string);
+      $self->cache->set($url_string,$result);
     }
 
     $self->raw($result);
- 
-		my $struc = $self->api_type eq 'json'
-			? JSON::Any->jsonToObj($self->raw)
-			: XMLin($self->raw);
 
-		my $action_key = $self->_guess_key($struc,$action);
+    if ($format !~ /(json|xml)/) {
+      $self->data->{$action} = $self->raw();
+      return $self->raw();
+    }
+
+    my $struc = $format eq 'json'
+      ? JSON::Any->jsonToObj($self->raw)
+      : XMLin($self->raw);
+
+
+    my $action_key = $self->_guess_key($struc,$action);
 
     $struc = $struc->{$action_key} if $action_key;
     $self->data->{$action} = $struc;
 
-    return new Hash::AsObject($struc);
-	} else {
-	  warn "Only basic weather conditions are supported using the deprecated keyless interface";
-	  warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
-	}
+    return
+      ref($struc) eq "HASH" ?
+        new Hash::AsObject($struc) :
+        $struc;
+  } else {
+    warn "Only basic weather conditions are supported using the deprecated keyless interface";
+    warn "please visit http://www.wunderground.com/weather/api to obtain your own API key";
+  }
 }
 
 
@@ -125,7 +154,7 @@ sub AUTOLOAD {
   if (defined($val)) {
     return $val;
   } else {
-    return $self->api_call($key) if $self->auto_api;
+    return $self->api_call($key,@_) if $self->auto_api;
     warn "$key is not defined. Is it a valid key, and is data actually loading?";
     warn "If you're trying to autoload an endpoint, set auto_api to something truthy";
     return undef;
@@ -138,7 +167,7 @@ __PACKAGE__->meta->make_immutable;
 
 
 #The following exists purely as an example for others of what not to do.
-#Use a Cache::Cache or CLI Cache. Really.
+#Use a Cache::Cache or CHI Cache. Really.
 package WWW::Wunderground::API::BadCache;
 use Moo;
 
@@ -185,13 +214,27 @@ to see all of the tasty data bits.
       location=>'22152',
       api_key=>'my wunderground api key',
       auto_api=>1,
-      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea. 
+      cache=>Cache::FileCache->new({ namespace=>'wundercache', default_expires_in=>2400 }) #A cache is probably a good idea.
     );
 
-    
-    #Check the wunderground docs for details, but here are just a few examples 
-    print 'The temperature is: '.$wun->conditions->temp_f."\n"; 
-    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n"; 
+
+    #Check the wunderground docs for details, but here are just a few examples
+
+    #the following $t1-$t6 are all equivalent:
+    $wun->location(22152);
+
+    $t1 = $wun->api_call('conditions')->temp_f
+    $t2 = $wun->api_call('conditions', 22152)->temp_f
+    $t3 = $wun->api_call('conditions', {location=>22152})->temp_f
+    $t4 = $wun->api_call('conditions', location=>22152)->temp_f
+    $t5 = $wun->conditions->temp_f
+    $t6 = $wun->temp_f
+
+    print 'The temperature is: '.$wun->conditions->temp_f."\n";
+    print 'The rest of the world calls that: '.$wun->conditions->temp_c."\n";
+    my $sat_gif = $wun->satellite; #image calls default to 300x300 gif
+    my $rad_png = $wun->radar( format=>'png', width=>500, height=>500 ); #or pass parameters to be specific
+    my $rad_animation = $wun->animatedsatellite(); #animations are always gif
     print 'Record high temperature year: '.$wun->almanac->temp_high->recordyear."\n";
     print "Sunrise at:".$wun->astronomy->sunrise->hour.':'.$wun->astronomy->sunrise->minute."\n";
     print "Simple forecast:".$wun->forecast->simpleforecast->forecastday->[0]{conditions}."\n";
@@ -257,7 +300,7 @@ You can also set this to whatever json/xml you'd like, though I can't imagine wh
 
 =head2 cache()
 
-Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CLI> caches should work.
+Specify a cache object. Needs only to support get(key) and set (key,value) so L<Cache::Cache> or L<CHI> caches should work.
 
 =head2 xml()
 
@@ -329,6 +372,10 @@ L<http://search.cpan.org/dist/WWW-Wunderground-API/>
 
 =back
 
+=head1 SEEALSO
+
+If you'd like to scrape from Weather Underground rather than have to use the API, see L<Weather::Underground>.
+WWW::Wunderground::API only supports current conditions without an API key.
 
 =head1 LICENSE AND COPYRIGHT
 

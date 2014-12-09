@@ -1,5 +1,12 @@
 Revision history for WWW-Wunderground-API
 
+0.07    2014-12-08
+        Merge mschilli's warning fixes
+        Include binary/image pulling
+
+0.06    2013-08-18
+        Documentation and POD test fixes
+
 0.05
         2013-08-14
         Lots of changes. Hopefully none breaking, but with waaay more features.
@@ -10,7 +17,7 @@ Revision history for WWW-Wunderground-API
 
 0.04
         2012-10-22
-        Remove buggy Module::Install v1.04 
+        Remove buggy Module::Install v1.04
 
 0.03
         2011-12-28
@@ -24,4 +31,3 @@ Revision history for WWW-Wunderground-API
 
 0.01    2011-06-01
         First version, released on an unsuspecting world.
-

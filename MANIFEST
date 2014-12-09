@@ -12,7 +12,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/WWW/Wunderground/API.pm
 Makefile.PL
-MANIFEST
+MANIFEST			This list of files
 META.yml
 README.pod
 t/00-load.t
